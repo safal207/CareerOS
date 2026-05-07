@@ -31,6 +31,29 @@ The first version focuses on a narrow but valuable workflow:
 6. Track the opportunity through a simple pipeline.
 7. Prepare for interview questions and salary negotiation.
 
+## Quick start
+
+Install locally:
+
+```bash
+python -m pip install -e .
+```
+
+Run the deterministic MVP analyzer:
+
+```bash
+careeros \
+  --resume examples/sample-resume.md \
+  --vacancy examples/sample-vacancy.md \
+  --pretty
+```
+
+Run tests:
+
+```bash
+python -m pytest
+```
+
 ## Modules
 
 - **Resume Parser** — extracts experience, roles, skills, domains, achievements, and constraints.
@@ -45,17 +68,24 @@ The first version focuses on a narrow but valuable workflow:
 
 ```txt
 CareerOS/
+├─ careeros/
+│  ├─ analyzer.py
+│  ├─ cli.py
+│  └─ models.py
 ├─ docs/
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
 │  ├─ architecture.md
 │  ├─ scoring-model.md
 │  ├─ hh-integration.md
+│  ├─ cli.md
 │  └─ privacy-and-safety.md
 ├─ examples/
 │  ├─ sample-resume.md
 │  ├─ sample-vacancy.md
 │  └─ sample-analysis.md
+├─ tests/
+│  └─ test_analyzer.py
 └─ .github/
    └─ ISSUE_TEMPLATE/
       ├─ feature_request.md
