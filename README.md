@@ -54,6 +54,16 @@ Run tests:
 python -m pytest
 ```
 
+## Output contract
+
+The analyzer returns a structured `MatchReport` object. Its public JSON shape is documented in:
+
+```txt
+schemas/match-report.schema.json
+```
+
+This schema is the contract for future API endpoints, UI views, and LLM-assisted analysis.
+
 ## Modules
 
 - **Resume Parser** — extracts experience, roles, skills, domains, achievements, and constraints.
@@ -84,9 +94,14 @@ CareerOS/
 │  ├─ sample-resume.md
 │  ├─ sample-vacancy.md
 │  └─ sample-analysis.md
+├─ schemas/
+│  └─ match-report.schema.json
 ├─ tests/
-│  └─ test_analyzer.py
+│  ├─ test_analyzer.py
+│  └─ test_match_report_contract.py
 └─ .github/
+   ├─ workflows/
+   │  └─ ci.yml
    └─ ISSUE_TEMPLATE/
       ├─ feature_request.md
       └─ mvp_task.md
