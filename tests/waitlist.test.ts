@@ -45,6 +45,27 @@ describe("WaitlistStore", () => {
     expect(JSON.parse(lines[0] ?? "{}")).toMatchObject({ email: "user@example.com" });
   });
 
+  it("lists waitlist entries newest first", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-waitlist-"));
+    const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+
+    await store.add({ email: "first@example.com", source: "test" });
+    await store.add({ email: "second@example.com", source: "test" });
+
+    const entries = await store.list();
+
+    expect(entries).toHaveLength(2);
+    expect(entries[0]?.email).toBe("second@example.com");
+    expect(entries[1]?.email).toBe("first@example.com");
+  });
+
+  it("returns an empty list when the file does not exist", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-waitlist-"));
+    const store = new WaitlistStore(join(tempDir, "missing.jsonl"));
+
+    await expect(store.list()).resolves.toEqual([]);
+  });
+
   it("rejects invalid email addresses", async () => {
     tempDir = await mkdtemp(join(tmpdir(), "careeros-waitlist-"));
     const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
