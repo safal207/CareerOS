@@ -1,4 +1,5 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { verifyAdminRequest } from "./adminAuth.js";
 import { analyzeMatch } from "./analyzer.js";
 import type { MatchRequest } from "./models.js";
 import { WaitlistStore, WaitlistValidationError, type WaitlistRequest } from "./waitlist.js";
@@ -48,6 +49,12 @@ async function route(
   }
 
   if (method === "GET" && url === "/api/waitlist") {
+    const auth = verifyAdminRequest(request);
+    if (!auth.ok) {
+      sendJson(response, 401, { error: "unauthorized", message: "Missing or invalid admin token." });
+      return;
+    }
+
     const entries = await waitlistStore.list();
     sendJson(response, 200, { count: entries.length, entries });
     return;
