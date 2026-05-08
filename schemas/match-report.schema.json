@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/safal207/CareerOS/schemas/match-report.schema.json",
+  "title": "CareerOS MatchReport",
+  "description": "Structured output contract for resume-vacancy match analysis.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "match_score",
+    "risk_score",
+    "growth_score",
+    "salary_fit",
+    "recommendation",
+    "strong_matches",
+    "missing_skills",
+    "risks",
+    "application_strategy"
+  ],
+  "properties": {
+    "match_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "risk_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "growth_score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "salary_fit": {
+      "type": "string",
+      "enum": ["good_fit", "below_expectation", "above_expectation", "unknown", "needs_negotiation"]
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": ["strong_apply", "apply", "apply_with_positioning", "skip", "needs_more_info"]
+    },
+    "strong_matches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["requirement", "evidence", "confidence"],
+        "properties": {
+          "requirement": { "type": "string", "minLength": 1 },
+          "evidence": { "type": "string", "minLength": 1 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "missing_skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skill", "severity", "suggested_positioning"],
+        "properties": {
+          "skill": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "suggested_positioning": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["risk", "severity", "question_to_ask"],
+        "properties": {
+          "risk": { "type": "string", "minLength": 1 },
+          "severity": { "type": "string", "enum": ["low", "medium", "high"] },
+          "question_to_ask": {
+            "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }]
+          }
+        }
+      }
+    },
+    "application_strategy": { "type": "string" }
+  }
+}
