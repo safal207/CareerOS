@@ -1,4 +1,4 @@
-import { mkdir, appendFile } from "node:fs/promises";
+import { mkdir, appendFile, readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 export interface WaitlistRequest {
@@ -36,6 +36,21 @@ export class WaitlistStore {
 
     return entry;
   }
+
+  async list(): Promise<WaitlistEntry[]> {
+    try {
+      const content = await readFile(this.filePath, "utf8");
+      return content
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0)
+        .map((line) => JSON.parse(line) as WaitlistEntry)
+        .sort((left, right) => right.created_at.localeCompare(left.created_at));
+    } catch (error) {
+      if (isFileNotFound(error)) return [];
+      throw error;
+    }
+  }
 }
 
 export class WaitlistValidationError extends Error {
@@ -56,4 +71,8 @@ export function isValidEmail(email: string): boolean {
 function cleanValue(value: string | undefined): string | undefined {
   const cleaned = value?.trim();
   return cleaned && cleaned.length > 0 ? cleaned : undefined;
+}
+
+function isFileNotFound(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
