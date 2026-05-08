@@ -1,13 +1,14 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { analyzeMatch } from "./analyzer.js";
 import type { MatchRequest } from "./models.js";
+import { WaitlistStore, WaitlistValidationError, type WaitlistRequest } from "./waitlist.js";
 
 const DEFAULT_PORT = 3000;
 
-export function createCareerOsServer() {
+export function createCareerOsServer(waitlistStore = new WaitlistStore()) {
   return createServer(async (request, response) => {
     try {
-      await route(request, response);
+      await route(request, response, waitlistStore);
     } catch (error) {
       sendJson(response, 500, {
         error: "internal_server_error",
@@ -17,7 +18,11 @@ export function createCareerOsServer() {
   });
 }
 
-async function route(request: IncomingMessage, response: ServerResponse): Promise<void> {
+async function route(
+  request: IncomingMessage,
+  response: ServerResponse,
+  waitlistStore: WaitlistStore,
+): Promise<void> {
   const method = request.method ?? "GET";
   const url = request.url ?? "/";
 
@@ -39,6 +44,30 @@ async function route(request: IncomingMessage, response: ServerResponse): Promis
 
     const report = analyzeMatch(body.resume_text, body.vacancy_text);
     sendJson(response, 200, report);
+    return;
+  }
+
+  if (method === "POST" && url === "/api/waitlist") {
+    const body = await readJson(request);
+
+    if (!isWaitlistRequest(body)) {
+      sendJson(response, 400, {
+        error: "invalid_request",
+        message: "Expected a non-empty email string.",
+      });
+      return;
+    }
+
+    try {
+      const entry = await waitlistStore.add(body);
+      sendJson(response, 201, { ok: true, entry });
+    } catch (error) {
+      if (error instanceof WaitlistValidationError) {
+        sendJson(response, 400, { error: "invalid_email", message: error.message });
+        return;
+      }
+      throw error;
+    }
     return;
   }
 
@@ -65,6 +94,12 @@ function isMatchRequest(value: unknown): value is MatchRequest {
     typeof record.vacancy_text === "string" &&
     record.vacancy_text.trim().length > 0
   );
+}
+
+function isWaitlistRequest(value: unknown): value is WaitlistRequest {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.email === "string" && record.email.trim().length > 0;
 }
 
 function sendJson(response: ServerResponse, statusCode: number, payload: unknown): void {
