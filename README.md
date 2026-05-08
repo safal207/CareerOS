@@ -21,17 +21,15 @@ The product is designed as a decision-support layer, not an unsafe auto-clicking
 
 ## TypeScript-first MVP
 
-CareerOS is developed as a TypeScript-only MVP so the analyzer, API, and future UI can share one contract.
+CareerOS is developed as a TypeScript-only MVP so the analyzer, API, and UI can share one contract.
 
-The first version focuses on a narrow but valuable workflow:
+The first product surface is a ClickFunnels + Product Launch Formula + SamCart-inspired funnel:
 
-1. Paste or import a resume.
-2. Paste or import a vacancy.
-3. Analyze fit, risks, gaps, and opportunity quality.
-4. Generate a tailored application message.
-5. Suggest resume edits for the target role.
-6. Track the opportunity through a simple pipeline.
-7. Prepare for interview questions and salary negotiation.
+1. Strong promise.
+2. Free lead magnet: Instant Job Fit Audit.
+3. Value stack.
+4. Analyzer value moment.
+5. Next paid offer path.
 
 ## Quick start
 
@@ -56,18 +54,10 @@ Run the API:
 npm run dev
 ```
 
-Healthcheck:
+Run the funnel frontend:
 
 ```bash
-curl http://127.0.0.1:3000/health
-```
-
-Create match report:
-
-```bash
-curl -X POST http://127.0.0.1:3000/api/matches \
-  -H 'content-type: application/json' \
-  -d '{"resume_text":"Senior QA Engineer with API, SQL, fintech","vacancy_text":"QA role requiring API testing, SQL, fintech"}'
+npm run dev:web
 ```
 
 Build and test:
@@ -82,6 +72,7 @@ npm test
 - **Resume Parser** — extracts experience, roles, skills, domains, achievements, and constraints.
 - **Vacancy Analyzer** — extracts requirements, salary signals, employer expectations, and red flags.
 - **Match Scoring Engine** — compares resume evidence against vacancy requirements.
+- **Funnel Frontend** — turns analysis into a conversion-oriented value moment.
 - **Application Generator** — creates concise, role-specific application messages.
 - **Pipeline Tracker** — tracks job opportunities from saved to offer/rejected.
 - **Interview Prep** — generates likely questions, answer angles, and evidence-backed stories.
@@ -95,12 +86,16 @@ CareerOS/
 │  ├─ analyzer.ts
 │  ├─ cli.ts
 │  ├─ models.ts
-│  └─ server.ts
+│  ├─ server.ts
+│  └─ web/
+│     ├─ main.tsx
+│     └─ styles.css
 ├─ docs/
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
 │  ├─ architecture.md
 │  ├─ scoring-model.md
+│  ├─ funnel-strategy.md
 │  ├─ hh-integration.md
 │  ├─ typescript.md
 │  └─ privacy-and-safety.md
@@ -147,7 +142,7 @@ CareerOS/
 
 ## Status
 
-Early TypeScript-first MVP. Current goal: build the first usable product around resume + vacancy analysis before adding external integrations.
+Early TypeScript-first MVP with a funnel-style frontend. Current goal: turn resume + vacancy analysis into a high-converting value moment before adding external integrations.
 
 ## License
 
