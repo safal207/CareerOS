@@ -14,9 +14,20 @@ export type WaitlistLeadsResult =
   | { ok: true; data: WaitlistLeadsResponse }
   | { ok: false; message: string };
 
-export async function fetchWaitlistLeads(): Promise<WaitlistLeadsResult> {
+export async function fetchWaitlistLeads(adminToken = ""): Promise<WaitlistLeadsResult> {
   try {
-    const response = await fetch("/api/waitlist");
+    const headers: Record<string, string> = {};
+    const token = adminToken.trim();
+
+    if (token.length > 0) {
+      headers["x-admin-token"] = token;
+    }
+
+    const response = await fetch("/api/waitlist", { headers });
+
+    if (response.status === 401) {
+      return { ok: false, message: "Missing or invalid admin token." };
+    }
 
     if (!response.ok) {
       return { ok: false, message: "Could not load waitlist leads." };
