@@ -30,6 +30,8 @@ The first product surface is a ClickFunnels + Product Launch Formula + SamCart-i
 3. Value stack.
 4. Analyzer value moment.
 5. Next paid offer path.
+6. Waitlist capture.
+7. Token-protected admin dashboard.
 
 ## Quick start
 
@@ -60,6 +62,20 @@ Run the funnel frontend:
 npm run dev:web
 ```
 
+Open the funnel:
+
+```txt
+http://127.0.0.1:5173
+```
+
+Open the admin dashboard:
+
+```txt
+http://127.0.0.1:5173/admin
+```
+
+For the full local MVP flow, see [`docs/local-mvp-runbook.md`](docs/local-mvp-runbook.md).
+
 Build and test:
 
 ```bash
@@ -73,6 +89,8 @@ npm test
 - **Vacancy Analyzer** — extracts requirements, salary signals, employer expectations, and red flags.
 - **Match Scoring Engine** — compares resume evidence against vacancy requirements.
 - **Funnel Frontend** — turns analysis into a conversion-oriented value moment.
+- **Waitlist Capture** — stores early-access demand in JSONL for MVP validation.
+- **Admin Dashboard** — shows captured leads and funnel interest signals.
 - **Application Generator** — creates concise, role-specific application messages.
 - **Pipeline Tracker** — tracks job opportunities from saved to offer/rejected.
 - **Interview Prep** — generates likely questions, answer angles, and evidence-backed stories.
@@ -83,14 +101,22 @@ npm test
 ```txt
 CareerOS/
 ├─ src/
+│  ├─ adminAuth.ts
 │  ├─ analyzer.ts
 │  ├─ cli.ts
 │  ├─ models.ts
 │  ├─ server.ts
+│  ├─ waitlist.ts
 │  └─ web/
+│     ├─ AdminDashboard.tsx
+│     ├─ App.tsx
 │     ├─ main.tsx
-│     └─ styles.css
+│     ├─ styles.css
+│     ├─ waitlistAdminClient.ts
+│     └─ waitlistClient.ts
 ├─ docs/
+│  ├─ admin-dashboard.md
+│  ├─ local-mvp-runbook.md
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
 │  ├─ architecture.md
@@ -98,6 +124,7 @@ CareerOS/
 │  ├─ funnel-strategy.md
 │  ├─ hh-integration.md
 │  ├─ typescript.md
+│  ├─ waitlist-api.md
 │  └─ privacy-and-safety.md
 ├─ examples/
 │  ├─ sample-resume.md
@@ -107,7 +134,10 @@ CareerOS/
 │  └─ match-report.schema.json
 ├─ tests/
 │  ├─ analyzer.test.ts
-│  └─ server.test.ts
+│  ├─ server.test.ts
+│  ├─ waitlist.test.ts
+│  ├─ waitlistAdminClient.test.ts
+│  └─ waitlistClient.test.ts
 └─ .github/
    ├─ workflows/
    │  └─ ci.yml
@@ -142,7 +172,7 @@ CareerOS/
 
 ## Status
 
-Early TypeScript-first MVP with a funnel-style frontend. Current goal: turn resume + vacancy analysis into a high-converting value moment before adding external integrations.
+Early TypeScript-first MVP with a funnel-style frontend, waitlist capture, and admin dashboard. Current goal: validate demand and conversion before adding payment, CRM, email automation, and external integrations.
 
 ## License
 
