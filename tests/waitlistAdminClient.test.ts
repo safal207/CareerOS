@@ -21,7 +21,29 @@ describe("fetchWaitlistLeads", () => {
       expect(result.data.count).toBe(1);
       expect(result.data.entries[0]?.email).toBe("lead@example.com");
     }
-    expect(globalThis.fetch).toHaveBeenCalledWith("/api/waitlist");
+    expect(globalThis.fetch).toHaveBeenCalledWith("/api/waitlist", { headers: {} });
+  });
+
+  it("sends the admin token header when provided", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ count: 0, entries: [] }), { status: 200 }));
+
+    const result = await fetchWaitlistLeads("secret-token");
+
+    expect(result.ok).toBe(true);
+    expect(globalThis.fetch).toHaveBeenCalledWith("/api/waitlist", {
+      headers: { "x-admin-token": "secret-token" },
+    });
+  });
+
+  it("returns a specific error for unauthorized responses", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}", { status: 401 }));
+
+    const result = await fetchWaitlistLeads("wrong-token");
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.message).toContain("admin token");
+    }
   });
 
   it("returns a user-facing error when the backend fails", async () => {
