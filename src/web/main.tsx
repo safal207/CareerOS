@@ -11,6 +11,8 @@ const sampleVacancy = `Senior QA Engineer for a fintech platform. Requirements: 
 function App() {
   const [resumeText, setResumeText] = useState(sampleResume);
   const [vacancyText, setVacancyText] = useState(sampleVacancy);
+  const [email, setEmail] = useState("");
+  const [waitlistState, setWaitlistState] = useState<"idle" | "joined">("idle");
   const [report, setReport] = useState<MatchReport>(() => analyzeMatch(sampleResume, sampleVacancy));
 
   const recommendationLabel = useMemo(() => formatLabel(report.recommendation), [report.recommendation]);
@@ -19,12 +21,21 @@ function App() {
     setReport(analyzeMatch(resumeText, vacancyText));
   }
 
+  function handleJoinWaitlist(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (email.trim().length === 0) return;
+    setWaitlistState("joined");
+  }
+
   return (
     <main className="page-shell">
       <section className="hero-section">
         <nav className="nav-bar">
           <div className="brand-mark">CareerOS</div>
-          <a className="nav-cta" href="#analyzer">Run free audit</a>
+          <div className="nav-actions">
+            <a className="nav-cta ghost" href="#offer">$19 pack</a>
+            <a className="nav-cta" href="#analyzer">Run free audit</a>
+          </div>
         </nav>
 
         <div className="hero-grid">
@@ -36,7 +47,7 @@ function App() {
             </p>
             <div className="hero-actions">
               <a className="primary-button" href="#analyzer">Analyze my fit</a>
-              <a className="secondary-button" href="#value-stack">See value stack</a>
+              <a className="secondary-button" href="#waitlist">Join waitlist</a>
             </div>
             <div className="trust-row">
               <span>Evidence-first</span>
@@ -112,6 +123,58 @@ function App() {
         </div>
       </section>
 
+      <section id="waitlist" className="waitlist-section">
+        <div className="section-heading compact">
+          <span>Email Capture</span>
+          <h2>Get the private CareerOS launch sequence.</h2>
+          <p>
+            Join the waitlist for templates, launch notes, and the first paid pack. This is the PLF nurture bridge after the free audit.
+          </p>
+        </div>
+        <form className="waitlist-form" onSubmit={handleJoinWaitlist}>
+          <input
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            aria-label="Email address"
+          />
+          <button className="primary-button" type="submit">
+            {waitlistState === "joined" ? "You are on the list" : "Join waitlist"}
+          </button>
+        </form>
+        {waitlistState === "joined" ? (
+          <p className="form-note">Saved locally for MVP validation. Backend capture comes next.</p>
+        ) : (
+          <p className="form-note">No spam. The promise: fewer applications, better odds.</p>
+        )}
+      </section>
+
+      <section id="offer" className="tripwire-section">
+        <div className="tripwire-copy">
+          <span className="eyebrow">Tripwire Offer</span>
+          <h2>$19 Job Search Pack</h2>
+          <p>
+            A low-friction first purchase after the free audit: package one candidate for 10 better-fit jobs this week.
+          </p>
+          <ul className="offer-list">
+            <li>10 vacancy fit audits</li>
+            <li>10 tailored application angles</li>
+            <li>Resume headline rewrite</li>
+            <li>Interview question pack</li>
+            <li>Salary negotiation opener</li>
+          </ul>
+        </div>
+        <div className="checkout-card">
+          <div className="checkout-price">
+            <span>Launch price</span>
+            <strong>$19</strong>
+          </div>
+          <p>Use the free audit first. If it gives clarity, the paid pack turns clarity into action.</p>
+          <a className="primary-button full-width" href="#waitlist">Reserve early access</a>
+        </div>
+      </section>
+
       <section className="checkout-section">
         <div>
           <span className="eyebrow">Next paid offer</span>
@@ -120,7 +183,7 @@ function App() {
             The natural SamCart offer after the free audit: save multiple vacancies, rank them, generate tailored responses, and track your pipeline.
           </p>
         </div>
-        <a className="primary-button" href="#analyzer">Start with one free audit</a>
+        <a className="primary-button" href="#waitlist">Join the launch list</a>
       </section>
     </main>
   );
