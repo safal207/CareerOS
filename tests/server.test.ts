@@ -46,4 +46,24 @@ describe("createCareerOsServer", () => {
     expect(payload.ok).toBe(true);
     expect(payload.entry.email).toBe("user@example.com");
   });
+
+  it("lists waitlist leads through the API", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    await store.add({ email: "lead@example.com", source: "test" });
+    const server = createCareerOsServer(store);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/waitlist`);
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.count).toBe(1);
+    expect(payload.entries[0].email).toBe("lead@example.com");
+  });
 });
