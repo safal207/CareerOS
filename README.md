@@ -19,7 +19,9 @@ CareerOS explains which opportunities are worth pursuing, why they fit, what ris
 
 The product is designed as a decision-support layer, not an unsafe auto-clicking bot. The user stays in control of final actions such as applying, sending messages, or changing external accounts.
 
-## MVP
+## TypeScript-first MVP
+
+CareerOS is developed as a TypeScript-only MVP so the analyzer, API, and future UI can share one contract.
 
 The first version focuses on a narrow but valuable workflow:
 
@@ -30,6 +32,50 @@ The first version focuses on a narrow but valuable workflow:
 5. Suggest resume edits for the target role.
 6. Track the opportunity through a simple pipeline.
 7. Prepare for interview questions and salary negotiation.
+
+## Quick start
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the deterministic analyzer from CLI:
+
+```bash
+npm run analyze -- \
+  --resume examples/sample-resume.md \
+  --vacancy examples/sample-vacancy.md \
+  --pretty
+```
+
+Run the API:
+
+```bash
+npm run dev
+```
+
+Healthcheck:
+
+```bash
+curl http://127.0.0.1:3000/health
+```
+
+Create match report:
+
+```bash
+curl -X POST http://127.0.0.1:3000/api/matches \
+  -H 'content-type: application/json' \
+  -d '{"resume_text":"Senior QA Engineer with API, SQL, fintech","vacancy_text":"QA role requiring API testing, SQL, fintech"}'
+```
+
+Build and test:
+
+```bash
+npm run build
+npm test
+```
 
 ## Modules
 
@@ -45,18 +91,31 @@ The first version focuses on a narrow but valuable workflow:
 
 ```txt
 CareerOS/
+├─ src/
+│  ├─ analyzer.ts
+│  ├─ cli.ts
+│  ├─ models.ts
+│  └─ server.ts
 ├─ docs/
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
 │  ├─ architecture.md
 │  ├─ scoring-model.md
 │  ├─ hh-integration.md
+│  ├─ typescript.md
 │  └─ privacy-and-safety.md
 ├─ examples/
 │  ├─ sample-resume.md
 │  ├─ sample-vacancy.md
 │  └─ sample-analysis.md
+├─ schemas/
+│  └─ match-report.schema.json
+├─ tests/
+│  ├─ analyzer.test.ts
+│  └─ server.test.ts
 └─ .github/
+   ├─ workflows/
+   │  └─ ci.yml
    └─ ISSUE_TEMPLATE/
       ├─ feature_request.md
       └─ mvp_task.md
@@ -88,7 +147,7 @@ CareerOS/
 
 ## Status
 
-Early product foundation. Current goal: build the first usable MVP around resume + vacancy analysis before adding external integrations.
+Early TypeScript-first MVP. Current goal: build the first usable product around resume + vacancy analysis before adding external integrations.
 
 ## License
 
