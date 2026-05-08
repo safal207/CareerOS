@@ -47,6 +47,12 @@ async function route(
     return;
   }
 
+  if (method === "GET" && url === "/api/waitlist") {
+    const entries = await waitlistStore.list();
+    sendJson(response, 200, { count: entries.length, entries });
+    return;
+  }
+
   if (method === "POST" && url === "/api/waitlist") {
     const body = await readJson(request);
 
