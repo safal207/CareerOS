@@ -6,6 +6,10 @@ const backendPort = Number(process.env.PORT ?? 3000);
 
 export default defineConfig({
   plugins: [react()],
+  build: {
+    outDir: "dist/web",
+    emptyOutDir: true,
+  },
   server: {
     host: "0.0.0.0",
     port: frontendPort,
