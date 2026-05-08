@@ -7,12 +7,13 @@ export function AdminDashboard() {
   const [state, setState] = useState<DashboardState>("loading");
   const [message, setMessage] = useState("Loading waitlist leads...");
   const [leads, setLeads] = useState<WaitlistLead[]>([]);
+  const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem("careeros_admin_token") ?? "");
 
-  async function loadLeads() {
+  async function loadLeads(token = adminToken) {
     setState("loading");
     setMessage("Loading waitlist leads...");
 
-    const result = await fetchWaitlistLeads();
+    const result = await fetchWaitlistLeads(token);
 
     if (!result.ok) {
       setState("error");
@@ -23,6 +24,12 @@ export function AdminDashboard() {
     setLeads(result.data.entries);
     setState("ready");
     setMessage(`${result.data.count} captured lead${result.data.count === 1 ? "" : "s"}.`);
+  }
+
+  function handleTokenSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    window.localStorage.setItem("careeros_admin_token", adminToken);
+    void loadLeads(adminToken);
   }
 
   useEffect(() => {
@@ -46,9 +53,25 @@ export function AdminDashboard() {
             Inspect captured launch interest for the $19 Job Search Pack before adding a full CRM or payment integration.
           </p>
         </div>
-        <button className="primary-button" type="button" onClick={loadLeads} disabled={state === "loading"}>
+        <button className="primary-button" type="button" onClick={() => void loadLeads()} disabled={state === "loading"}>
           {state === "loading" ? "Refreshing..." : "Refresh leads"}
         </button>
+      </section>
+
+      <section className="admin-token-panel">
+        <form className="admin-token-form" onSubmit={handleTokenSubmit}>
+          <label>
+            Admin token
+            <input
+              type="password"
+              placeholder="CAREEROS_ADMIN_TOKEN"
+              value={adminToken}
+              onChange={(event) => setAdminToken(event.target.value)}
+            />
+          </label>
+          <button className="primary-button" type="submit">Save token</button>
+        </form>
+        <p>Used only in this browser via localStorage and sent as <code>x-admin-token</code>.</p>
       </section>
 
       <section className="admin-metrics">
@@ -63,7 +86,7 @@ export function AdminDashboard() {
             <h2>Captured leads</h2>
             <p>{message}</p>
           </div>
-          <span className="security-badge">Local MVP — add auth before production</span>
+          <span className="security-badge">Token-protected when CAREEROS_ADMIN_TOKEN is set</span>
         </div>
 
         {state === "error" ? <EmptyState title="Could not load leads" text={message} /> : null}

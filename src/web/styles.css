@@ -182,7 +182,8 @@ h1 {
 .value-card,
 .checkout-section,
 .admin-metric-card,
-.admin-panel {
+.admin-panel,
+.admin-token-panel {
   border: 1px solid rgba(16, 24, 40, 0.1);
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.74);
@@ -224,7 +225,8 @@ h1 {
 .checkout-section p,
 .result-block p,
 .admin-panel p,
-.empty-state p {
+.empty-state p,
+.admin-token-panel p {
   color: #667085;
   line-height: 1.6;
 }
@@ -315,10 +317,9 @@ label {
   font-weight: 900;
 }
 
-textarea {
+textarea,
+input {
   width: 100%;
-  min-height: 170px;
-  resize: vertical;
   border: 1px solid rgba(16, 24, 40, 0.12);
   border-radius: 22px;
   padding: 16px;
@@ -328,7 +329,13 @@ textarea {
   line-height: 1.5;
 }
 
-textarea:focus {
+textarea {
+  min-height: 170px;
+  resize: vertical;
+}
+
+textarea:focus,
+input:focus {
   border-color: rgba(255, 138, 0, 0.65);
   box-shadow: 0 0 0 4px rgba(255, 138, 0, 0.12);
 }
@@ -403,6 +410,30 @@ ul {
   gap: 24px;
   align-items: flex-end;
   margin-bottom: 24px;
+}
+
+.admin-token-panel {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.admin-token-panel code {
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #fff3df;
+  color: #8a4700;
+  font-weight: 900;
+}
+
+.admin-token-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.admin-token-form label {
+  margin-bottom: 0;
 }
 
 .admin-metrics {
@@ -493,7 +524,8 @@ td {
   .analyzer-grid,
   .value-grid,
   .checkout-section,
-  .admin-metrics {
+  .admin-metrics,
+  .admin-token-form {
     grid-template-columns: 1fr;
   }
 

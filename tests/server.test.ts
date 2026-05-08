@@ -7,8 +7,11 @@ import { WaitlistStore } from "../src/waitlist.js";
 
 describe("createCareerOsServer", () => {
   let tempDir: string | null = null;
+  const originalAdminToken = process.env.CAREEROS_ADMIN_TOKEN;
 
   afterEach(async () => {
+    process.env.CAREEROS_ADMIN_TOKEN = originalAdminToken;
+
     if (tempDir) {
       await rm(tempDir, { recursive: true, force: true });
       tempDir = null;
@@ -47,7 +50,8 @@ describe("createCareerOsServer", () => {
     expect(payload.entry.email).toBe("user@example.com");
   });
 
-  it("lists waitlist leads through the API", async () => {
+  it("lists waitlist leads through the API when admin token is disabled", async () => {
+    delete process.env.CAREEROS_ADMIN_TOKEN;
     tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
     const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
     await store.add({ email: "lead@example.com", source: "test" });
@@ -64,6 +68,45 @@ describe("createCareerOsServer", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload.count).toBe(1);
+    expect(payload.entries[0].email).toBe("lead@example.com");
+  });
+
+  it("rejects waitlist lead listing without the admin token when configured", async () => {
+    process.env.CAREEROS_ADMIN_TOKEN = "secret-token";
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    const server = createCareerOsServer(store);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/waitlist`);
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(401);
+  });
+
+  it("lists waitlist leads with the admin token when configured", async () => {
+    process.env.CAREEROS_ADMIN_TOKEN = "secret-token";
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const store = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    await store.add({ email: "lead@example.com", source: "test" });
+    const server = createCareerOsServer(store);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/waitlist`, {
+      headers: { "x-admin-token": "secret-token" },
+    });
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
     expect(payload.entries[0].email).toBe("lead@example.com");
   });
 });
