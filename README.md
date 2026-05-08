@@ -36,7 +36,7 @@ The first version focuses on a narrow but valuable workflow:
 Install locally:
 
 ```bash
-python -m pip install -e .
+python -m pip install -e .[dev]
 ```
 
 Run the deterministic MVP analyzer:
@@ -46,6 +46,18 @@ careeros \
   --resume examples/sample-resume.md \
   --vacancy examples/sample-vacancy.md \
   --pretty
+```
+
+Run the API:
+
+```bash
+uvicorn careeros.api:app --reload
+```
+
+Then open:
+
+```txt
+http://127.0.0.1:8000/docs
 ```
 
 Run tests:
@@ -80,6 +92,7 @@ This schema is the contract for future API endpoints, UI views, and LLM-assisted
 CareerOS/
 ├─ careeros/
 │  ├─ analyzer.py
+│  ├─ api.py
 │  ├─ cli.py
 │  └─ models.py
 ├─ docs/
@@ -88,6 +101,7 @@ CareerOS/
 │  ├─ architecture.md
 │  ├─ scoring-model.md
 │  ├─ hh-integration.md
+│  ├─ api.md
 │  ├─ cli.md
 │  └─ privacy-and-safety.md
 ├─ examples/
@@ -98,6 +112,7 @@ CareerOS/
 │  └─ match-report.schema.json
 ├─ tests/
 │  ├─ test_analyzer.py
+│  ├─ test_api.py
 │  └─ test_match_report_contract.py
 └─ .github/
    ├─ workflows/
