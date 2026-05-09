@@ -3,7 +3,7 @@
 This runbook starts the full CareerOS MVP locally:
 
 ```txt
-Backend API -> Vite frontend -> Funnel -> Waitlist capture -> Admin dashboard
+Backend API -> Vite frontend -> Funnel -> Waitlist capture -> Checkout intent -> Admin dashboard
 ```
 
 ## 1. Install dependencies
@@ -77,7 +77,7 @@ Use the page to:
 - join the waitlist;
 - reserve interest in the $19 Job Search Pack.
 
-## 6. Inspect leads
+## 6. Inspect funnel signals
 
 Open:
 
@@ -91,17 +91,19 @@ The dashboard reads:
 
 ```txt
 GET /api/waitlist
+GET /api/checkout-intents
 ```
 
-The backend stores leads in JSONL:
+The backend stores funnel signals in JSONL:
 
 ```txt
 data/waitlist.jsonl
+data/checkout-intents.jsonl
 ```
 
 ## 7. Manual API checks
 
-Create a lead:
+Create a waitlist lead:
 
 ```bash
 curl -X POST http://127.0.0.1:3000/api/waitlist \
@@ -109,16 +111,33 @@ curl -X POST http://127.0.0.1:3000/api/waitlist \
   -d '{"email":"user@example.com","source":"manual_curl","offer":"job_search_pack_19"}'
 ```
 
-List leads without token protection:
+Create a checkout intent:
+
+```bash
+curl -X POST http://127.0.0.1:3000/api/checkout-intents \
+  -H 'content-type: application/json' \
+  -d '{"email":"buyer@example.com","source":"manual_curl","offer":"job_search_pack_19","price_usd":19}'
+```
+
+List waitlist leads without token protection:
 
 ```bash
 curl http://127.0.0.1:3000/api/waitlist
 ```
 
-List leads with token protection:
+List checkout intents without token protection:
+
+```bash
+curl http://127.0.0.1:3000/api/checkout-intents
+```
+
+List funnel signals with token protection:
 
 ```bash
 curl http://127.0.0.1:3000/api/waitlist \
+  -H 'x-admin-token: change-me'
+
+curl http://127.0.0.1:3000/api/checkout-intents \
   -H 'x-admin-token: change-me'
 ```
 
@@ -162,6 +181,7 @@ Before public deployment, add:
 - real authentication;
 - role-based authorization;
 - secure persistent storage;
+- real payment provider integration;
 - rate limiting;
 - audit logs;
 - email consent and unsubscribe flow;

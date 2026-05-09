@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { analyzeMatch } from "../analyzer.js";
 import type { MatchReport } from "../models.js";
+import { submitCheckoutIntent } from "./checkoutIntentClient.js";
 import { submitWaitlistEmail } from "./waitlistClient.js";
 
 const sampleResume = `Senior QA Engineer with 12+ years of experience in fintech, banking, reporting systems, REST API testing, Postman, Swagger, SQL validation, regression testing, smoke testing, logs, Kibana, Elastic, Sentry, Chrome DevTools, and microservice testing.`;
@@ -8,13 +9,17 @@ const sampleResume = `Senior QA Engineer with 12+ years of experience in fintech
 const sampleVacancy = `Senior QA Engineer for a fintech platform. Requirements: 5+ years of QA experience, manual testing, API testing with Postman or Swagger, SQL skills for data validation, experience with banking, brokerage, investment, or reporting products. Nice to have: Kafka, Docker, Python automation. Salary range not specified.`;
 
 type WaitlistState = "idle" | "submitting" | "joined" | "error";
+type CheckoutIntentState = "idle" | "submitting" | "reserved" | "error";
 
 export function App() {
   const [resumeText, setResumeText] = useState(sampleResume);
   const [vacancyText, setVacancyText] = useState(sampleVacancy);
   const [email, setEmail] = useState("");
+  const [checkoutEmail, setCheckoutEmail] = useState("");
   const [waitlistState, setWaitlistState] = useState<WaitlistState>("idle");
+  const [checkoutIntentState, setCheckoutIntentState] = useState<CheckoutIntentState>("idle");
   const [waitlistMessage, setWaitlistMessage] = useState("No spam. The promise: fewer applications, better odds.");
+  const [checkoutIntentMessage, setCheckoutIntentMessage] = useState("No payment yet. This records purchase intent for the $19 launch pack.");
   const [report, setReport] = useState<MatchReport>(() => analyzeMatch(sampleResume, sampleVacancy));
 
   const recommendationLabel = useMemo(() => formatLabel(report.recommendation), [report.recommendation]);
@@ -31,6 +36,16 @@ export function App() {
     const result = await submitWaitlistEmail(email);
     setWaitlistState(result.ok ? "joined" : "error");
     setWaitlistMessage(result.message);
+  }
+
+  async function handleCheckoutIntent(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setCheckoutIntentState("submitting");
+    setCheckoutIntentMessage("Reserving your $19 pack intent...");
+
+    const result = await submitCheckoutIntent(checkoutEmail || email);
+    setCheckoutIntentState(result.ok ? "reserved" : "error");
+    setCheckoutIntentMessage(result.message);
   }
 
   return (
@@ -140,7 +155,19 @@ export function App() {
         <div className="checkout-card">
           <div className="checkout-price"><span>Launch price</span><strong>$19</strong></div>
           <p>Use the free audit first. If it gives clarity, the paid pack turns clarity into action.</p>
-          <a className="primary-button full-width" href="#waitlist">Reserve early access</a>
+          <form className="checkout-intent-form" onSubmit={handleCheckoutIntent}>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={checkoutEmail}
+              onChange={(event) => setCheckoutEmail(event.target.value)}
+              aria-label="Checkout intent email"
+            />
+            <button className="primary-button full-width" type="submit" disabled={checkoutIntentState === "submitting"}>
+              {checkoutIntentState === "submitting" ? "Reserving..." : checkoutIntentState === "reserved" ? "Reserved" : "Reserve $19 pack"}
+            </button>
+          </form>
+          <p className="form-note">{checkoutIntentMessage}</p>
         </div>
       </section>
 
@@ -150,7 +177,7 @@ export function App() {
           <h2>“Apply to 10 better-fit jobs this week.”</h2>
           <p>The natural SamCart offer after the free audit: save multiple vacancies, rank them, generate tailored responses, and track your pipeline.</p>
         </div>
-        <a className="primary-button" href="#waitlist">Join the launch list</a>
+        <a className="primary-button" href="#offer">Reserve the $19 pack</a>
       </section>
     </main>
   );

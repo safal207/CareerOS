@@ -1,42 +1,61 @@
 import React, { useEffect, useState } from "react";
-import { fetchWaitlistLeads, type WaitlistLead } from "./waitlistAdminClient.js";
+import {
+  fetchCheckoutIntents,
+  fetchWaitlistLeads,
+  type CheckoutIntentLead,
+  type WaitlistLead,
+} from "./waitlistAdminClient.js";
 
 type DashboardState = "loading" | "ready" | "error";
 
 export function AdminDashboard() {
   const [state, setState] = useState<DashboardState>("loading");
-  const [message, setMessage] = useState("Loading waitlist leads...");
+  const [message, setMessage] = useState("Loading funnel signals...");
   const [leads, setLeads] = useState<WaitlistLead[]>([]);
+  const [checkoutIntents, setCheckoutIntents] = useState<CheckoutIntentLead[]>([]);
   const [adminToken, setAdminToken] = useState(() => window.localStorage.getItem("careeros_admin_token") ?? "");
 
-  async function loadLeads(token = adminToken) {
+  async function loadDashboard(token = adminToken) {
     setState("loading");
-    setMessage("Loading waitlist leads...");
+    setMessage("Loading funnel signals...");
 
-    const result = await fetchWaitlistLeads(token);
+    const [waitlistResult, checkoutResult] = await Promise.all([
+      fetchWaitlistLeads(token),
+      fetchCheckoutIntents(token),
+    ]);
 
-    if (!result.ok) {
+    if (!waitlistResult.ok) {
       setState("error");
-      setMessage(result.message);
+      setMessage(waitlistResult.message);
       return;
     }
 
-    setLeads(result.data.entries);
+    if (!checkoutResult.ok) {
+      setState("error");
+      setMessage(checkoutResult.message);
+      return;
+    }
+
+    setLeads(waitlistResult.data.entries);
+    setCheckoutIntents(checkoutResult.data.entries);
     setState("ready");
-    setMessage(`${result.data.count} captured lead${result.data.count === 1 ? "" : "s"}.`);
+    setMessage(
+      `${waitlistResult.data.count} waitlist lead${waitlistResult.data.count === 1 ? "" : "s"}; ${checkoutResult.data.count} checkout intent${checkoutResult.data.count === 1 ? "" : "s"}.`,
+    );
   }
 
   function handleTokenSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     window.localStorage.setItem("careeros_admin_token", adminToken);
-    void loadLeads(adminToken);
+    void loadDashboard(adminToken);
   }
 
   useEffect(() => {
-    void loadLeads();
+    void loadDashboard();
   }, []);
 
   const latestLead = leads[0];
+  const latestCheckoutIntent = checkoutIntents[0];
 
   return (
     <main className="page-shell admin-page">
@@ -48,13 +67,13 @@ export function AdminDashboard() {
       <section className="admin-hero">
         <div>
           <div className="eyebrow">MVP Admin</div>
-          <h1>Waitlist leads dashboard.</h1>
+          <h1>Funnel signals dashboard.</h1>
           <p className="hero-lead">
-            Inspect captured launch interest for the $19 Job Search Pack before adding a full CRM or payment integration.
+            Inspect waitlist demand and $19 Job Search Pack purchase intent before adding a full CRM or payment integration.
           </p>
         </div>
-        <button className="primary-button" type="button" onClick={() => void loadLeads()} disabled={state === "loading"}>
-          {state === "loading" ? "Refreshing..." : "Refresh leads"}
+        <button className="primary-button" type="button" onClick={() => void loadDashboard()} disabled={state === "loading"}>
+          {state === "loading" ? "Refreshing..." : "Refresh signals"}
         </button>
       </section>
 
@@ -75,21 +94,35 @@ export function AdminDashboard() {
       </section>
 
       <section className="admin-metrics">
-        <AdminMetric label="Total leads" value={String(leads.length)} />
-        <AdminMetric label="Latest source" value={latestLead?.source ?? "—"} />
-        <AdminMetric label="Primary offer" value={latestLead?.offer ?? "—"} />
+        <AdminMetric label="Waitlist leads" value={String(leads.length)} />
+        <AdminMetric label="$19 intents" value={String(checkoutIntents.length)} />
+        <AdminMetric label="Latest buyer signal" value={latestCheckoutIntent?.email ?? latestLead?.email ?? "—"} />
       </section>
 
       <section className="admin-panel">
         <div className="admin-panel-header">
           <div>
-            <h2>Captured leads</h2>
+            <h2>Checkout intents</h2>
             <p>{message}</p>
           </div>
           <span className="security-badge">Token-protected when CAREEROS_ADMIN_TOKEN is set</span>
         </div>
 
-        {state === "error" ? <EmptyState title="Could not load leads" text={message} /> : null}
+        {state === "error" ? <EmptyState title="Could not load funnel signals" text={message} /> : null}
+        {state === "ready" && checkoutIntents.length === 0 ? (
+          <EmptyState title="No checkout intents yet" text="Reserve the $19 pack from the funnel to capture the first purchase-intent signal." />
+        ) : null}
+        {checkoutIntents.length > 0 ? <CheckoutIntentsTable intents={checkoutIntents} /> : null}
+      </section>
+
+      <section className="admin-panel secondary-admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <h2>Waitlist leads</h2>
+            <p>Top-of-funnel interest captured before purchase intent.</p>
+          </div>
+        </div>
+
         {state === "ready" && leads.length === 0 ? (
           <EmptyState title="No leads yet" text="Run the funnel and submit the waitlist form to capture the first lead." />
         ) : null}
@@ -113,6 +146,35 @@ function EmptyState({ title, text }: { title: string; text: string }) {
     <div className="empty-state">
       <h3>{title}</h3>
       <p>{text}</p>
+    </div>
+  );
+}
+
+function CheckoutIntentsTable({ intents }: { intents: CheckoutIntentLead[] }) {
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Offer</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          {intents.map((intent) => (
+            <tr key={`${intent.email}-${intent.created_at}`}>
+              <td>{intent.email}</td>
+              <td>{intent.offer}</td>
+              <td>${intent.price_usd}</td>
+              <td>{intent.status}</td>
+              <td>{formatDate(intent.created_at)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

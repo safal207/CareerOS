@@ -1,15 +1,23 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { verifyAdminRequest } from "./adminAuth.js";
 import { analyzeMatch } from "./analyzer.js";
+import {
+  CheckoutIntentStore,
+  CheckoutIntentValidationError,
+  type CheckoutIntentRequest,
+} from "./checkoutIntent.js";
 import type { MatchRequest } from "./models.js";
 import { WaitlistStore, WaitlistValidationError, type WaitlistRequest } from "./waitlist.js";
 
 const DEFAULT_PORT = 3000;
 
-export function createCareerOsServer(waitlistStore = new WaitlistStore()) {
+export function createCareerOsServer(
+  waitlistStore = new WaitlistStore(),
+  checkoutIntentStore = new CheckoutIntentStore(),
+) {
   return createServer(async (request, response) => {
     try {
-      await route(request, response, waitlistStore);
+      await route(request, response, waitlistStore, checkoutIntentStore);
     } catch (error) {
       sendJson(response, 500, {
         error: "internal_server_error",
@@ -23,6 +31,7 @@ async function route(
   request: IncomingMessage,
   response: ServerResponse,
   waitlistStore: WaitlistStore,
+  checkoutIntentStore: CheckoutIntentStore,
 ): Promise<void> {
   const method = request.method ?? "GET";
   const url = request.url ?? "/";
@@ -84,6 +93,42 @@ async function route(
     return;
   }
 
+  if (method === "GET" && url === "/api/checkout-intents") {
+    const auth = verifyAdminRequest(request);
+    if (!auth.ok) {
+      sendJson(response, 401, { error: "unauthorized", message: "Missing or invalid admin token." });
+      return;
+    }
+
+    const entries = await checkoutIntentStore.list();
+    sendJson(response, 200, { count: entries.length, entries });
+    return;
+  }
+
+  if (method === "POST" && url === "/api/checkout-intents") {
+    const body = await readJson(request);
+
+    if (!isCheckoutIntentRequest(body)) {
+      sendJson(response, 400, {
+        error: "invalid_request",
+        message: "Expected a non-empty email string.",
+      });
+      return;
+    }
+
+    try {
+      const entry = await checkoutIntentStore.add(body);
+      sendJson(response, 201, { ok: true, entry });
+    } catch (error) {
+      if (error instanceof CheckoutIntentValidationError) {
+        sendJson(response, 400, { error: "invalid_email", message: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
   sendJson(response, 404, { error: "not_found" });
 }
 
@@ -110,6 +155,12 @@ function isMatchRequest(value: unknown): value is MatchRequest {
 }
 
 function isWaitlistRequest(value: unknown): value is WaitlistRequest {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.email === "string" && record.email.trim().length > 0;
+}
+
+function isCheckoutIntentRequest(value: unknown): value is CheckoutIntentRequest {
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return typeof record.email === "string" && record.email.trim().length > 0;

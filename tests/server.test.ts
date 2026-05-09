@@ -2,6 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
+import { CheckoutIntentStore } from "../src/checkoutIntent.js";
 import { createCareerOsServer } from "../src/server.js";
 import { WaitlistStore } from "../src/waitlist.js";
 
@@ -108,5 +109,72 @@ describe("createCareerOsServer", () => {
     expect(response.status).toBe(200);
     const payload = await response.json();
     expect(payload.entries[0].email).toBe("lead@example.com");
+  });
+
+  it("accepts checkout intents through the API", async () => {
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const waitlistStore = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    const checkoutIntentStore = new CheckoutIntentStore(join(tempDir, "checkout-intents.jsonl"));
+    const server = createCareerOsServer(waitlistStore, checkoutIntentStore);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/checkout-intents`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: "buyer@example.com", source: "test", offer: "job_search_pack_19", price_usd: 19 }),
+    });
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(201);
+    const payload = await response.json();
+    expect(payload.ok).toBe(true);
+    expect(payload.entry.email).toBe("buyer@example.com");
+    expect(payload.entry.status).toBe("intent_created");
+  });
+
+  it("lists checkout intents with the admin token when configured", async () => {
+    process.env.CAREEROS_ADMIN_TOKEN = "secret-token";
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const waitlistStore = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    const checkoutIntentStore = new CheckoutIntentStore(join(tempDir, "checkout-intents.jsonl"));
+    await checkoutIntentStore.add({ email: "buyer@example.com", source: "test" });
+    const server = createCareerOsServer(waitlistStore, checkoutIntentStore);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/checkout-intents`, {
+      headers: { "x-admin-token": "secret-token" },
+    });
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(200);
+    const payload = await response.json();
+    expect(payload.count).toBe(1);
+    expect(payload.entries[0].email).toBe("buyer@example.com");
+  });
+
+  it("rejects checkout intent listing without the admin token when configured", async () => {
+    process.env.CAREEROS_ADMIN_TOKEN = "secret-token";
+    tempDir = await mkdtemp(join(tmpdir(), "careeros-api-"));
+    const waitlistStore = new WaitlistStore(join(tempDir, "waitlist.jsonl"));
+    const checkoutIntentStore = new CheckoutIntentStore(join(tempDir, "checkout-intents.jsonl"));
+    const server = createCareerOsServer(waitlistStore, checkoutIntentStore);
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/checkout-intents`);
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(401);
   });
 });
