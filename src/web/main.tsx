@@ -5,6 +5,7 @@ import { App } from "./App.js";
 import "./styles.css";
 
 const root = document.getElementById("root");
-const isAdminRoute = window.location.pathname === "/admin";
+const path = window.location.pathname.replace(/\/$/, "");
+const isAdminRoute = path.endsWith("/admin") || window.location.hash === "#/admin";
 
 createRoot(root!).render(isAdminRoute ? <AdminDashboard /> : <App />);

@@ -3,8 +3,10 @@ import { defineConfig } from "vite";
 
 const frontendPort = Number(process.env.VITE_PORT ?? 5173);
 const backendPort = Number(process.env.PORT ?? 3000);
+const isGitHubPages = process.env.GITHUB_PAGES === "true";
 
 export default defineConfig({
+  base: isGitHubPages ? "/CareerOS/" : "/",
   plugins: [react()],
   build: {
     outDir: "dist/web",
