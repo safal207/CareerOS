@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiBase.js";
+
 export type CheckoutIntentResult =
   | { ok: true; message: string }
   | { ok: false; message: string };
@@ -10,7 +12,7 @@ export async function submitCheckoutIntent(email: string): Promise<CheckoutInten
   }
 
   try {
-    const response = await fetch("/api/checkout-intents", {
+    const response = await fetch(apiUrl("/api/checkout-intents"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
