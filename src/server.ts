@@ -10,6 +10,7 @@ import type { MatchRequest } from "./models.js";
 import { WaitlistStore, WaitlistValidationError, type WaitlistRequest } from "./waitlist.js";
 
 const DEFAULT_PORT = 3000;
+const DEFAULT_ALLOWED_ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173"];
 
 export function createCareerOsServer(
   waitlistStore = new WaitlistStore(),
@@ -17,6 +18,14 @@ export function createCareerOsServer(
 ) {
   return createServer(async (request, response) => {
     try {
+      applyCorsHeaders(request, response);
+
+      if ((request.method ?? "GET") === "OPTIONS") {
+        response.writeHead(204);
+        response.end();
+        return;
+      }
+
       await route(request, response, waitlistStore, checkoutIntentStore);
     } catch (error) {
       sendJson(response, 500, {
@@ -164,6 +173,28 @@ function isCheckoutIntentRequest(value: unknown): value is CheckoutIntentRequest
   if (!value || typeof value !== "object") return false;
   const record = value as Record<string, unknown>;
   return typeof record.email === "string" && record.email.trim().length > 0;
+}
+
+function applyCorsHeaders(request: IncomingMessage, response: ServerResponse): void {
+  const origin = request.headers.origin;
+  if (!origin) return;
+
+  if (getAllowedOrigins().includes(origin)) {
+    response.setHeader("access-control-allow-origin", origin);
+    response.setHeader("vary", "Origin");
+    response.setHeader("access-control-allow-methods", "GET,POST,OPTIONS");
+    response.setHeader("access-control-allow-headers", "content-type,x-admin-token");
+    response.setHeader("access-control-max-age", "86400");
+  }
+}
+
+function getAllowedOrigins(): string[] {
+  const configuredOrigins = (process.env.CAREEROS_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+
+  return configuredOrigins.length > 0 ? configuredOrigins : DEFAULT_ALLOWED_ORIGINS;
 }
 
 function sendJson(response: ServerResponse, statusCode: number, payload: unknown): void {

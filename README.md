@@ -78,6 +78,8 @@ For the full local MVP flow, see [`docs/local-mvp-runbook.md`](docs/local-mvp-ru
 
 For GitHub Pages static frontend deployment, see [`docs/github-pages.md`](docs/github-pages.md).
 
+For backend deployment and remote API wiring, see [`docs/backend-deploy.md`](docs/backend-deploy.md).
+
 Build and test:
 
 ```bash
@@ -118,6 +120,7 @@ CareerOS/
 │     └─ waitlistClient.ts
 ├─ docs/
 │  ├─ admin-dashboard.md
+│  ├─ backend-deploy.md
 │  ├─ github-pages.md
 │  ├─ local-mvp-runbook.md
 │  ├─ product-vision.md

@@ -9,9 +9,11 @@ import { WaitlistStore } from "../src/waitlist.js";
 describe("createCareerOsServer", () => {
   let tempDir: string | null = null;
   const originalAdminToken = process.env.CAREEROS_ADMIN_TOKEN;
+  const originalAllowedOrigins = process.env.CAREEROS_ALLOWED_ORIGINS;
 
   afterEach(async () => {
     process.env.CAREEROS_ADMIN_TOKEN = originalAdminToken;
+    process.env.CAREEROS_ALLOWED_ORIGINS = originalAllowedOrigins;
 
     if (tempDir) {
       await rm(tempDir, { recursive: true, force: true });
@@ -26,6 +28,46 @@ describe("createCareerOsServer", () => {
     expect(typeof server.close).toBe("function");
 
     server.close();
+  });
+
+  it("handles CORS preflight for configured frontend origins", async () => {
+    process.env.CAREEROS_ALLOWED_ORIGINS = "https://safal207.github.io";
+    const server = createCareerOsServer();
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/waitlist`, {
+      method: "OPTIONS",
+      headers: { origin: "https://safal207.github.io" },
+    });
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get("access-control-allow-origin")).toBe("https://safal207.github.io");
+    expect(response.headers.get("access-control-allow-methods")).toContain("POST");
+    expect(response.headers.get("access-control-allow-headers")).toContain("x-admin-token");
+  });
+
+  it("does not allow unconfigured CORS origins", async () => {
+    process.env.CAREEROS_ALLOWED_ORIGINS = "https://safal207.github.io";
+    const server = createCareerOsServer();
+
+    await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("Expected TCP address");
+
+    const response = await fetch(`http://127.0.0.1:${address.port}/api/waitlist`, {
+      method: "OPTIONS",
+      headers: { origin: "https://evil.example" },
+    });
+
+    await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+
+    expect(response.status).toBe(204);
+    expect(response.headers.get("access-control-allow-origin")).toBeNull();
   });
 
   it("accepts waitlist submissions through the API", async () => {

@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiBase.js";
+
 export interface WaitlistLead {
   email: string;
   source: string;
@@ -55,7 +57,7 @@ async function fetchAdminJson<T>(url: string, adminToken: string, fallbackMessag
       headers["x-admin-token"] = token;
     }
 
-    const response = await fetch(url, { headers });
+    const response = await fetch(apiUrl(url), { headers });
 
     if (response.status === 401) {
       return { ok: false, message: "Missing or invalid admin token." };
