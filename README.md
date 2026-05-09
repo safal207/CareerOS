@@ -78,7 +78,7 @@ For the full local MVP flow, see [`docs/local-mvp-runbook.md`](docs/local-mvp-ru
 
 For GitHub Pages static frontend deployment, see [`docs/github-pages.md`](docs/github-pages.md).
 
-For backend deployment and remote API wiring, see [`docs/backend-deploy.md`](docs/backend-deploy.md).
+For backend deployment and remote API wiring, see [`docs/backend-deploy.md`](docs/backend-deploy.md). The repo also includes `render.yaml` for Render Blueprint deployment.
 
 Build and test:
 
@@ -144,6 +144,7 @@ CareerOS/
 │  ├─ waitlist.test.ts
 │  ├─ waitlistAdminClient.test.ts
 │  └─ waitlistClient.test.ts
+├─ render.yaml
 └─ .github/
    ├─ workflows/
    │  ├─ ci.yml
