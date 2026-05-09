@@ -15,13 +15,56 @@ GET  /api/checkout-intents
 
 The admin read endpoints are protected when `CAREEROS_ADMIN_TOKEN` is set.
 
-## Required environment variables
+## Render Blueprint path
+
+The repository includes a Render Blueprint file:
 
 ```txt
-PORT=3000
+render.yaml
+```
+
+It defines one Docker web service:
+
+```txt
+careerOS API -> Dockerfile -> /health
+```
+
+Deploy steps:
+
+1. Merge the PR that adds `render.yaml`.
+2. In Render, create a new Blueprint from this GitHub repository.
+3. Set `CAREEROS_ADMIN_TOKEN` when Render asks for the unsynced secret value.
+4. Deploy the service.
+5. Copy the public backend URL, for example:
+
+```txt
+https://careeros-api.onrender.com
+```
+
+6. In GitHub, set the repository variable:
+
+```txt
+VITE_API_BASE_URL=https://careeros-api.onrender.com
+```
+
+7. Re-run the GitHub Pages workflow.
+
+## Required environment variables
+
+For Render Blueprint deployment, most values are already defined in `render.yaml`.
+
+Required secret:
+
+```txt
+CAREEROS_ADMIN_TOKEN=<strong-secret-token>
+```
+
+Configured defaults:
+
+```txt
+PORT=10000
 CAREEROS_WAITLIST_PATH=data/waitlist.jsonl
 CAREEROS_CHECKOUT_INTENTS_PATH=data/checkout-intents.jsonl
-CAREEROS_ADMIN_TOKEN=<strong-secret-token>
 CAREEROS_ALLOWED_ORIGINS=https://safal207.github.io
 ```
 
@@ -43,10 +86,11 @@ Build locally:
 docker build -t careeros-api .
 ```
 
-Run locally:
+Run locally with the Render-style port:
 
 ```bash
-docker run --rm -p 3000:3000 \
+docker run --rm -p 10000:10000 \
+  -e PORT=10000 \
   -e CAREEROS_ADMIN_TOKEN=change-me \
   -e CAREEROS_ALLOWED_ORIGINS=http://127.0.0.1:5173,https://safal207.github.io \
   careeros-api
@@ -55,10 +99,10 @@ docker run --rm -p 3000:3000 \
 Health check:
 
 ```bash
-curl http://127.0.0.1:3000/health
+curl http://127.0.0.1:10000/health
 ```
 
-## Render/Railway/Fly-style settings
+## Render/Railway/Fly-style manual settings
 
 Use the Dockerfile-based deploy option.
 
@@ -66,7 +110,7 @@ Typical service settings:
 
 ```txt
 Runtime: Docker
-Port: 3000
+Port: 10000
 Health check path: /health
 ```
 
@@ -93,7 +137,25 @@ Set `VITE_API_BASE_URL` during the frontend build:
 VITE_API_BASE_URL=https://careeros-api.example.com GITHUB_PAGES=true npm run build:web
 ```
 
-For GitHub Actions Pages deploy, add `VITE_API_BASE_URL` as a repository variable or secret and pass it into the Pages workflow.
+For GitHub Actions Pages deploy, add `VITE_API_BASE_URL` as a repository variable:
+
+```txt
+Settings -> Secrets and variables -> Actions -> Variables -> New repository variable
+```
+
+Name:
+
+```txt
+VITE_API_BASE_URL
+```
+
+Value:
+
+```txt
+https://careeros-api.example.com
+```
+
+Then re-run the Pages workflow.
 
 ## Data persistence warning
 
