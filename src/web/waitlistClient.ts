@@ -1,3 +1,5 @@
+import { apiUrl } from "./apiBase.js";
+
 export type WaitlistSubmitResult =
   | { ok: true; message: string }
   | { ok: false; message: string };
@@ -10,7 +12,7 @@ export async function submitWaitlistEmail(email: string): Promise<WaitlistSubmit
   }
 
   try {
-    const response = await fetch("/api/waitlist", {
+    const response = await fetch(apiUrl("/api/waitlist"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
