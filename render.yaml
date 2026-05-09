@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: careeros-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: CAREEROS_ALLOWED_ORIGINS
+        value: https://safal207.github.io
+      - key: CAREEROS_WAITLIST_PATH
+        value: data/waitlist.jsonl
+      - key: CAREEROS_CHECKOUT_INTENTS_PATH
+        value: data/checkout-intents.jsonl
+      - key: CAREEROS_ADMIN_TOKEN
+        sync: false
