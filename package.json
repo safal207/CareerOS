@@ -8,11 +8,16 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "npm run typecheck && npm run build:server && npm run build:web",
+    "build:server": "tsc -p tsconfig.build.json",
+    "build:web": "vite build",
+    "smoke:build": "node scripts/smoke-build.mjs",
     "test": "vitest run",
+    "ci": "npm run build && npm run smoke:build && npm test",
     "dev": "tsx src/server.ts",
     "dev:web": "vite --host 0.0.0.0",
-    "start": "node dist/server.js",
+    "start": "node dist/server/server.js",
     "analyze": "tsx src/cli.ts",
     "preview": "vite preview"
   },

@@ -14,6 +14,11 @@ export interface WaitlistEntry {
   created_at: string;
 }
 
+interface IndexedWaitlistEntry {
+  entry: WaitlistEntry;
+  index: number;
+}
+
 export class WaitlistStore {
   constructor(private readonly filePath = process.env.CAREEROS_WAITLIST_PATH ?? "data/waitlist.jsonl") {}
 
@@ -44,8 +49,12 @@ export class WaitlistStore {
         .split("\n")
         .map((line) => line.trim())
         .filter((line) => line.length > 0)
-        .map((line) => JSON.parse(line) as WaitlistEntry)
-        .sort((left, right) => right.created_at.localeCompare(left.created_at));
+        .map((line, index): IndexedWaitlistEntry => ({ entry: JSON.parse(line) as WaitlistEntry, index }))
+        .sort((left, right) => {
+          const dateOrder = right.entry.created_at.localeCompare(left.entry.created_at);
+          return dateOrder === 0 ? right.index - left.index : dateOrder;
+        })
+        .map(({ entry }) => entry);
     } catch (error) {
       if (isFileNotFound(error)) return [];
       throw error;

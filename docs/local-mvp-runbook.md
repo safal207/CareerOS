@@ -122,11 +122,36 @@ curl http://127.0.0.1:3000/api/waitlist \
   -H 'x-admin-token: change-me'
 ```
 
-## 8. Build and test
+## 8. Build, smoke-check, and test
+
+Full CI-equivalent check:
+
+```bash
+npm run ci
+```
+
+Individual quality gates:
+
+```bash
+npm run typecheck
+npm run build:server
+npm run build:web
+npm run smoke:build
+npm test
+```
+
+Build artifacts:
+
+```txt
+dist/server/server.js
+dist/web/index.html
+```
+
+Production-style API start after build:
 
 ```bash
 npm run build
-npm test
+npm start
 ```
 
 ## Deployment notes
