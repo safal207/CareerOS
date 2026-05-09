@@ -76,6 +76,8 @@ http://127.0.0.1:5173/admin
 
 For the full local MVP flow, see [`docs/local-mvp-runbook.md`](docs/local-mvp-runbook.md).
 
+For GitHub Pages static frontend deployment, see [`docs/github-pages.md`](docs/github-pages.md).
+
 Build and test:
 
 ```bash
@@ -116,6 +118,7 @@ CareerOS/
 │     └─ waitlistClient.ts
 ├─ docs/
 │  ├─ admin-dashboard.md
+│  ├─ github-pages.md
 │  ├─ local-mvp-runbook.md
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
@@ -140,7 +143,8 @@ CareerOS/
 │  └─ waitlistClient.test.ts
 └─ .github/
    ├─ workflows/
-   │  └─ ci.yml
+   │  ├─ ci.yml
+   │  └─ pages.yml
    └─ ISSUE_TEMPLATE/
       ├─ feature_request.md
       └─ mvp_task.md
