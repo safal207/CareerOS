@@ -80,6 +80,8 @@ For GitHub Pages static frontend deployment, see [`docs/github-pages.md`](docs/g
 
 For backend deployment and remote API wiring, see [`docs/backend-deploy.md`](docs/backend-deploy.md). The repo also includes `render.yaml` for Render Blueprint deployment.
 
+For the labor-market intelligence foundation, see [`docs/market-radar.md`](docs/market-radar.md).
+
 Build and test:
 
 ```bash
@@ -92,6 +94,7 @@ npm test
 - **Resume Parser** — extracts experience, roles, skills, domains, achievements, and constraints.
 - **Vacancy Analyzer** — extracts requirements, salary signals, employer expectations, and red flags.
 - **Match Scoring Engine** — compares resume evidence against vacancy requirements.
+- **Career Order Book** — turns disclosed employer budgets and candidate expectations into deterministic salary depth, imbalance, and equilibrium bands.
 - **Funnel Frontend** — turns analysis into a conversion-oriented value moment.
 - **Waitlist Capture** — stores early-access demand in JSONL for MVP validation.
 - **Admin Dashboard** — shows captured leads and funnel interest signals.
@@ -111,6 +114,9 @@ CareerOS/
 │  ├─ models.ts
 │  ├─ server.ts
 │  ├─ waitlist.ts
+│  ├─ market/
+│  │  ├─ models.ts
+│  │  └─ orderBook.ts
 │  └─ web/
 │     ├─ AdminDashboard.tsx
 │     ├─ App.tsx
@@ -123,6 +129,7 @@ CareerOS/
 │  ├─ backend-deploy.md
 │  ├─ github-pages.md
 │  ├─ local-mvp-runbook.md
+│  ├─ market-radar.md
 │  ├─ product-vision.md
 │  ├─ mvp-scope.md
 │  ├─ architecture.md
@@ -140,6 +147,7 @@ CareerOS/
 │  └─ match-report.schema.json
 ├─ tests/
 │  ├─ analyzer.test.ts
+│  ├─ marketOrderBook.test.ts
 │  ├─ server.test.ts
 │  ├─ waitlist.test.ts
 │  ├─ waitlistAdminClient.test.ts
@@ -177,10 +185,11 @@ CareerOS/
 4. **No spam automation** — avoid mass low-quality applications.
 5. **Explain every score** — a score without reasons is just decoration.
 6. **Privacy by design** — resumes and career data are sensitive by default.
+7. **Observed before estimated** — market charts must distinguish disclosed evidence from inferred values.
 
 ## Status
 
-Early TypeScript-first MVP with a funnel-style frontend, waitlist capture, and admin dashboard. Current goal: validate demand and conversion before adding payment, CRM, email automation, and external integrations.
+Early TypeScript-first MVP with a funnel-style frontend, waitlist capture, admin dashboard, and a deterministic Career Order Book foundation. Current goal: validate demand and conversion while building an evidence-safe path from individual vacancy analysis to labor-market intelligence.
 
 ## License
 
